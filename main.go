@@ -5,11 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 )
 
-var flagFile = flag.String("file", "", "file used for input")
-
+var (
+	flagFile = flag.String("file", "", "file used for input")
+	flagURL  = flag.String("url", "", "loads data via http get")
+)
 var input io.Reader
 
 func main() {
@@ -23,6 +26,14 @@ func main() {
 		}
 		defer f.Close()
 		input = f
+	case *flagURL != "":
+		resp, err := http.Get(*flagURL)
+		if err != nil {
+			fmt.Println("error loading file", *flagURL, err)
+			os.Exit(234)
+		}
+		defer resp.Body.Close()
+		input = resp.Body
 	default:
 		input = os.Stdin
 	}
